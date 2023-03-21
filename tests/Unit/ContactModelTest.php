@@ -3,35 +3,31 @@
 namespace Tests\Unit;
 
 use App\Models\Contact;
+use Database\Seeders\ContactSeeder;
+use Database\Seeders\PhoneSeeder;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
-class UserModelTest extends TestCase
+class ContactModelTest extends TestCase
 {
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Delete the user named John Doe from the database
-        Contact::where('name', 'John Doe')->delete();
-    }
     /**
-     * A basic unit test example.
      *
      * @return void
      */
     public function test_example()
     {
-        $data = [
-            'name' => 'John Doe',
-            'email' => 'johndoe@example.com',
-            'birth' => '1990-01-01',
-            'cpf' => '123.456.789-00',
-        ];
+        $this->seed(ContactSeeder::class);
+        $this->seed(PhoneSeeder::class);
 
-        $contact = Contact::create($data);
-
-        $this->assertInstanceOf(Contact::class, $contact);
-        $this->assertDatabaseHas('contact', $data);
+        $this->assertDatabaseCount('contact', 1);
+        $this->assertDatabaseCount('phone', 2);
+        $this->assertDatabaseHas('phone', [
+            'phone_number' => '552422222222',
+        ]);
+        $this->assertDatabaseHas('phone', [
+            'phone_number' => '552422222223',
+        ]);
     }
 }
