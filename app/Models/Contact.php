@@ -11,6 +11,11 @@ class Contact extends Model
 
     protected $table = "contact";
 
+    public function phone()
+    {
+        return $this->hasMany(Phone::class);
+    }
+
     protected $fillable = [
         'name',
         'email',
