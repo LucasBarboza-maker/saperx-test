@@ -6,6 +6,7 @@ use App\Models\Contact;
 use App\Models\Phone;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
@@ -16,8 +17,8 @@ class ContactController extends Controller
             $contacts = Contact::query();
 
             
-            if ($contact) {
-                $results = $contact->with('phone')->get();
+            if ($contact->id) {
+                $results = $contact->with('phone')->where('id', $contact->id)->get();
                 return response()->json($results);
             }
 
@@ -54,6 +55,8 @@ class ContactController extends Controller
 
     public function create(Request $request)
     {
+        Log::info('Response:', $request->all());
+
         try {
 
             $validatedData = $request->validate([
@@ -62,6 +65,7 @@ class ContactController extends Controller
                 'birth' => 'required|date',
                 'cpf' => 'required|string',
             ]);
+
 
             $contact = new Contact();
             $contact->name = $validatedData['name'];
@@ -101,10 +105,12 @@ class ContactController extends Controller
                 'cpf' => $validatedData['cpf']
             ]);
 
-            foreach ($request->phone as $phoneInfo) {
-                $phone = $contact->phone()->findOrFail($phoneInfo["id"]);
+            $contact->phone()->delete();
 
-                $phone->update([
+            foreach ($request->phone as $phoneInfo) {
+                $phone = $contact->phone();
+
+                $phone->create([
                     'phone_number' => $phoneInfo["phone_number"]
                 ]);
             }
