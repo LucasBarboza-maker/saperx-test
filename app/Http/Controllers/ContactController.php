@@ -10,10 +10,16 @@ use Illuminate\Http\Request;
 class ContactController extends Controller
 {
 
-    public function index(Request $request)
+    public function index(Contact $contact, Request $request)
     {
         try {
             $contacts = Contact::query();
+
+            
+            if ($contact) {
+                $results = $contact->with('phone')->get();
+                return response()->json($results);
+            }
 
             $contacts->with('phone');
 
@@ -64,6 +70,7 @@ class ContactController extends Controller
             $contact->cpf = $validatedData['cpf'];
             $contact->save();
 
+
             foreach ($request->phone as $relatedModelData) {
                 $relatedModel = new Phone();
                 $relatedModel->fill($relatedModelData);
@@ -93,6 +100,28 @@ class ContactController extends Controller
                 'birth' => $validatedData['birth'],
                 'cpf' => $validatedData['cpf']
             ]);
+
+            foreach ($request->phone as $phoneInfo) {
+                $phone = $contact->phone()->findOrFail($phoneInfo["id"]);
+
+                $phone->update([
+                    'phone_number' => $phoneInfo["phone_number"]
+                ]);
+            }
+
+
+            return response()->json(['message' => 'Success!']);
+        } catch (Exception  $e) {
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function delete(Request $request, Contact $contact)
+    {
+        try {
+
+            $contact->phone()->delete();
+            $contact->delete();
 
             return response()->json(['message' => 'Success!']);
         } catch (Exception  $e) {
